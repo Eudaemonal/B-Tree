@@ -144,27 +144,7 @@ public:
 	}
 
 
-	friend std::ostream& operator<< <T>(std::ostream& out, const btree<T>& b){
-		if(b.root == nullptr){
-			auto q = std::queue<typename btree<T>::Node*>{};
-			q.push(b.root.get());
-			while(!q.empty){
-				auto curr = q.front();
-				q.pop();
-				for(unsigned int i = 0; i<curr->elems.size();++i){
-					if(i>0 || curr != b.root.get())
-						out <<  ' ';
-					out << curr ->elems[i];
-					if(curr->hasChildAt(i))
-						q.push(curr->getLeftChildAt(i));
-				}
-				if(curr->hasRightChild())
-					q.push(curr->getRightChild());
-			}
-		}
-		return out;
-	}
-
+	friend std::ostream& operator<< <T>(std::ostream& out, const btree<T>& b);
 
 	iterator find(const T& elem){
 		return findElem(elem);
@@ -180,7 +160,7 @@ public:
 	}
 
 
-private:
+
 	iterator maxElement() const {
 		auto curr = root.get();
 		while (curr->hasRightChild())
@@ -237,6 +217,7 @@ private:
 		}
 		return end();
 	}
+
 	/** Node
 	*/
 	struct Node {
@@ -325,8 +306,32 @@ private:
 		std::unique_ptr<Node> rightChild {nullptr};
 		size_t maxNodeElems {DEFAULT_MAX_NODE_ELEMS};
 	};
+
+
 	size_t maxNodeElems {DEFAULT_MAX_NODE_ELEMS};
 	std::unique_ptr<Node> root {nullptr};
 };
+
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const btree<T>& b){
+	if(b.root == nullptr){
+		auto q = std::queue<typename btree<T>::Node*>{};
+		q.push(b.root.get());
+		while(!q.empty()){
+			auto curr = q.front();
+			q.pop();
+			for(unsigned int i = 0; i<curr->elems.size();++i){
+				if(i>0 || curr != b.root.get())
+					out <<  ' ';
+				out << curr ->elems[i];
+				if(curr->hasChildAt(i))
+					q.push(curr->getLeftChildAt(i));
+			}
+			if(curr->hasRightChild())
+				q.push(curr->getRightChild());
+		}
+	}
+	return out;
+}
 
 #endif
