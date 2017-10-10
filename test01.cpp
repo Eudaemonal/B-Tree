@@ -71,7 +71,7 @@ void insertRandomNumbers(btree<long>& testContainer, set<long>& stableContainer,
   cout << "Let's insert up to " << size << " numbers." << endl;
   for (size_t i = 0; i < size; i++) {
     long rndNum = getRandom(kMinInteger, kMaxInteger);
-    pair<btree<long>::iterator, bool> result = testContainer.insert(rndNum);
+    std::pair<btree<long>::iterator, bool> result = testContainer.insert(rndNum);
     if (result.second) stableContainer.insert(rndNum);
     if ((i + 1) % 100000 == 0) 
       cout << "Inserted some " << (i + 1) << " numbers thus far." << endl;
@@ -93,6 +93,8 @@ bool confirmEverythingMatches(const btree<long>& testContainer, const set<long>&
   cout << "Confirms the btree and the set " 
           "contain exactly the same values..." << endl;
   for (long i = kMinInteger; i <= kMaxInteger; i++) {
+    if ((i + 1) % 10000000 == 0) 
+      cout << "verified some " << (i + 1) << " numbers thus far." << endl;
     bool foundInTree = (testContainer.find(i) != testContainer.end());
     bool foundInSet = (stableContainer.find(i) != stableContainer.end());
     if (foundInTree != foundInSet) {
@@ -125,7 +127,7 @@ int main(void) {
   btree<long> btcpy = testContainer;
   confirmEverythingMatches(btcpy, stableContainer);
 
-/***
+
   
   // this next portion was something I used to sort a bunch of chars
   // this was what I used to debug my iterator and made it work
@@ -133,21 +135,21 @@ int main(void) {
 	
 	cout << "\nInserting these random chars into the tree...\n";
 	for(int i = 0; i < 10; i++) {
-	pair<btree<char>::iterator, bool> result = 
+	std::pair<btree<char>::iterator, bool> result = 
     astring.insert(static_cast<char>(getRandom('A', 'z')));
     cout << *result.first;
 	}
 	cout << endl << endl;
 		
 	for(btree<char>::iterator iter = astring.begin(); iter != astring.end(); ++iter)
-	cout << *iter;
+	 cout << *iter;
 	cout << endl;
   
   // const iterator test
   const btree<char>& refstring = astring;
     btree<char>::const_iterator iter;
 	cout << "Voila!  Sorted!" << endl;
-	for(iter = refstring.begin(); iter != refstring.end(); ++iter) {
+	for(auto iter = refstring.begin(); iter != refstring.end(); ++iter) {
 		astring.insert(static_cast<char>(getRandom('A', 'z')));
 	
 		cout << *(iter) << " ";
@@ -192,20 +194,20 @@ int main(void) {
   ofstream ofs1("out1");
   ofstream ofs2("out2");
   
-  copy(strTable->begin(), strTable->end(), ostream_iterator<string>(ofs1, " "));
+  copy(strTable->begin(), strTable->end(), std::ostream_iterator<string>(ofs1, " "));
   ofs1 << endl;
   ofs1 << *strTable << endl;
   
   delete strTable;
 
-  copy(btcpy2.begin(), btcpy2.end(), ostream_iterator<string>(ofs2, " "));
+  copy(btcpy2.begin(), btcpy2.end(), std::ostream_iterator<string>(ofs2, " "));
   ofs2 << endl;
   ofs2 << btcpy2 << endl;
   
   ofs1.close();
   ofs2.close();
   
-***/
+
 
   return 0;	
 }
