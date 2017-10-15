@@ -148,7 +148,7 @@ public:
 		if(b.root == nullptr){
 			auto q = std::queue<typename btree<T>::Node*>{};
 			q.push(b.root.get());
-			while(!q.empty){
+			while(!q.empty()){
 				auto curr = q.front();
 				q.pop();
 				for(unsigned int i = 0; i<curr->elems.size();++i){

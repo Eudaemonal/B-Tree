@@ -10,11 +10,12 @@ template <typename T> class const_btree_iterator;
 template <typename T> 
 class btree_iterator {
 public:
-	typedef std::ptrdiff_t difference_type;
-	typedef std::forward_iterator_tag iterator_category;
 	typedef T value_type;
 	typedef T* pointer;
 	typedef T& reference;
+
+	typedef std::forward_iterator_tag iterator_category;
+	typedef std::ptrdiff_t difference_type;
 
 	typedef typename btree<T>::Node Node;
 	typedef const_btree_iterator<T> const_btree_iter;
@@ -81,11 +82,8 @@ public:
     	}
     	return *this;
     }
-    btree_iterator operator++(int) {
-    	auto tmp = *this;
-    	++*this;
-    	return tmp;
-    }
+
+
     btree_iterator& operator--(){
 	    if (currPtr == nullptr) {
 	        return *this;
@@ -139,6 +137,13 @@ public:
 	    }
 	    return *this;
 	}
+
+    btree_iterator operator++(int) {
+    	auto tmp = *this;
+    	++*this;
+    	return tmp;
+    }
+
     btree_iterator operator--(int){
     	auto tmp = *this;
     	--*this;
@@ -173,11 +178,12 @@ private:
 template <typename T> 
 class const_btree_iterator {
 public:
-    typedef std::ptrdiff_t difference_type;
-    typedef std::forward_iterator_tag iterator_category;
     typedef T value_type;
     typedef T* pointer;
     typedef T& reference;
+
+    typedef std::ptrdiff_t difference_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     typedef typename btree<T>::Node Node;
     typedef btree_iterator<T> btree_iter;
@@ -203,18 +209,19 @@ public:
         --btree_it;
         return *this;
     }
+    
+    bool operator==(const btree_iter& other) const {
+        return btree_it == other;
+    }
+    bool operator!=(const btree_iter& other) const {
+        return btree_it != other;
+    }
 
     bool operator==(const const_btree_iterator& other) const {
         return btree_it == other.btree_it;
     }
     bool operator!=(const const_btree_iterator& other) const {
         return !operator==(other);
-    }
-    bool operator==(const btree_iter& other) const {
-        return btree_it == other;
-    }
-    bool operator!=(const btree_iter& other) const {
-        return btree_it != other;
     }
 
 private:
