@@ -10,12 +10,12 @@ template <typename T> class const_btree_iterator;
 template <typename T> 
 class btree_iterator {
 public:
-	typedef T value_type;
-	typedef T* pointer;
-	typedef T& reference;
+        typedef T value_type;
+        typedef T* pointer;
+        typedef T& reference;
 
-	typedef std::forward_iterator_tag iterator_category;
 	typedef std::ptrdiff_t difference_type;
+	typedef std::forward_iterator_tag iterator_category;
 
 	typedef typename btree<T>::Node Node;
 	typedef const_btree_iterator<T> const_btree_iter;

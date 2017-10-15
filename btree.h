@@ -11,7 +11,7 @@
 
 #include "btree_iterator.h"
 
-const size_t DEFAULT_MAX_NODE_ELEMS = 40;
+const size_t DEFAULT_MAX_NODE_SIZE = 40;
 
 
 template <typename T> std::ostream& operator<<(std::ostream& os, const btree<T>& tree);
@@ -31,10 +31,10 @@ public:
 	*/
 	btree() = default;
 	btree(size_t t)
-		: maxNodeElems(t)
+		: maxNodeSize(t)
 	{};
 	btree(const btree<T>& other)
-		: maxNodeElems(other.maxNodeElems)
+		: maxNodeSize(other.maxNodeSize)
 	{
 		auto q = std::queue<Node*>{};
 		q.push(other.root.get());
@@ -103,7 +103,7 @@ public:
 	std::pair<iterator, bool> insert(const T& elem){
 		// empty tree
 		if(root == nullptr || root->isEmpty()) {
-			root = std::make_unique<Node>(0,nullptr, elem, maxNodeElems);
+			root = std::make_unique<Node>(0,nullptr, elem, maxNodeSize);
 			return std::make_pair(iterator(root.get(), 0), true);
 		}
 		auto curr = root.get();
@@ -117,7 +117,7 @@ public:
 				i=0;
 			}
 			else if (elem > curr->elems[i]){
-				if(i < maxNodeElems-1)
+				if(i < maxNodeSize-1)
 					++i;
 				else{
 					if(curr->getRightChild()==nullptr)
@@ -143,28 +143,7 @@ public:
 		return std::make_pair(iterator(curr, i), true);
 	}
 
-
-	friend std::ostream& operator<< <T>(std::ostream& out, const btree<T>& b){
-		if(b.root == nullptr){
-			auto q = std::queue<typename btree<T>::Node*>{};
-			q.push(b.root.get());
-			while(!q.empty()){
-				auto curr = q.front();
-				q.pop();
-				for(unsigned int i = 0; i<curr->elems.size();++i){
-					if(i>0 || curr != b.root.get())
-						out <<  ' ';
-					out << curr ->elems[i];
-					if(curr->hasChildAt(i))
-						q.push(curr->getLeftChildAt(i));
-				}
-				if(curr->hasRightChild())
-					q.push(curr->getRightChild());
-			}
-		}
-		return out;
-	}
-
+	friend std::ostream& operator<< <T>(std::ostream& out, const btree<T>& b);
 
 	iterator find(const T& elem){
 		return findElem(elem);
@@ -173,14 +152,6 @@ public:
 		return findElem(elem);
 	}
 
-	
-	// test functions
-	void printNode(){
-		root->printNode();
-	}
-
-
-private:
 	iterator maxElement() const {
 		auto curr = root.get();
 		while (curr->hasRightChild())
@@ -188,11 +159,11 @@ private:
 		return iterator(curr, curr->elems.size()-1, false);
 	}
 	void clear() noexcept {
-		maxNodeElems = DEFAULT_MAX_NODE_ELEMS;
+		maxNodeSize = DEFAULT_MAX_NODE_SIZE;
 		root.reset(nullptr);
 	}
 	void swap(btree<T>& other) noexcept {
-		std::swap(maxNodeElems, other.maxNodeElems);
+		std::swap(maxNodeSize, other.maxNodeSize);
 		std::swap(root, other.root);
 	}
 	iterator findElem(const T& elem) const {
@@ -210,7 +181,7 @@ private:
 					return end();
 			}
 			else if (elem > curr->elems[i]){
-				if(i<maxNodeElems-1)
+				if(i<maxNodeSize-1)
 					++i;
 				else {
 					if(curr->hasRightChild()){
@@ -237,6 +208,7 @@ private:
 		}
 		return end();
 	}
+
 	/** Node
 	*/
 	struct Node {
@@ -246,45 +218,26 @@ private:
 			clearChildren();
 		}
 		Node(unsigned int posP, Node* p, const size_t m) 
-			: posInParent(posP), parent(p), maxNodeElems(m)
+			: posInParent(posP), parent(p), maxNodeSize(m)
 		{
 			clearChildren();
 		}
 		Node(unsigned int posP, Node* p, const T& val, const size_t m)
-			: posInParent(posP), parent(p), maxNodeElems(m)
+			: posInParent(posP), parent(p), maxNodeSize(m)
 		{
 			clearChildren();
 			elems.emplace(elems.cbegin(), val);
 		}
 		~Node() = default;
 		// Methods
-		void printNode(int level = 0) const {
-			std::cout <<"Node at level: "<< level
-			       	<< " size: " << elems.size() 
-				<< " pos: " << posInParent << "\n";
-			for(unsigned int i=0; i< elems.size(); ++i)
-				std::cout << elems[i] << ", ";
-			std::cout << "\n";
-			
-			for(unsigned int i=0; i< leftChildren.size();++i){
-				if(leftChildren[i]!=nullptr)
-					leftChildren[i]->printNode(level+1);
-			}
-			if(rightChild!=nullptr)
-				rightChild->printNode(level+1);
-
-		}
-		void clearChildren(){
-			leftChildren.clear();
-			for(auto i=0U; i<maxNodeElems;i++)
-				leftChildren.push_back(nullptr);
-			rightChild = nullptr;
-		}
+		    bool hasParent() const {
+        		return parent!=nullptr;
+        	}
         	void createLeftChildAt(unsigned int i) {
-        		leftChildren[i] = std::make_unique<Node>(i,this,maxNodeElems);
+        		leftChildren[i] = std::make_unique<Node>(i,this,maxNodeSize);
        		}
         	void createRightChild(){
-        		rightChild = std::make_unique<Node>(elems.size()-1,this,maxNodeElems);
+        		rightChild = std::make_unique<Node>(elems.size()-1,this,maxNodeSize);
         	}
         	Node* getLeftChildAt(unsigned int i) const{
         		return leftChildren[i].get();
@@ -298,17 +251,20 @@ private:
         	bool hasChildAt(unsigned int i) const {
         		return getLeftChildAt(i)!=nullptr;
         	}
-        	bool hasParent() const {
-        		return parent!=nullptr;
-        	}
         	bool hasRightChild() const {
         		return rightChild!=nullptr;
         	}
+     	   void clearChildren(){
+				leftChildren.clear();
+				for(auto i=0U; i<maxNodeSize;i++)
+					leftChildren.push_back(nullptr);
+				rightChild = nullptr;
+			}
         	bool containsElement(const T& v) const {
         		return std::find(elems.cbegin(), elems.cend(), v);
         	}
         	bool isFull() const {
-        		return elems.size() == maxNodeElems;
+        		return elems.size() == maxNodeSize;
         	}
         	bool isEmpty() const {
         		return elems.empty();
@@ -320,13 +276,36 @@ private:
 		// Node elements
 		unsigned int posInParent {0};
 		Node* parent {nullptr};
+		size_t maxNodeSize {DEFAULT_MAX_NODE_SIZE};
 		std::vector<T> elems {};
 		std::vector<std::unique_ptr<Node>> leftChildren {};
 		std::unique_ptr<Node> rightChild {nullptr};
-		size_t maxNodeElems {DEFAULT_MAX_NODE_ELEMS};
 	};
-	size_t maxNodeElems {DEFAULT_MAX_NODE_ELEMS};
+
+	size_t maxNodeSize {DEFAULT_MAX_NODE_SIZE};
 	std::unique_ptr<Node> root {nullptr};
 };
+
+template<typename T>
+std::ostream& operator<<(std::ostream& out, const btree<T>& b){
+	if(b.root == nullptr){
+		auto q = std::queue<typename btree<T>::Node*>{};
+		q.push(b.root.get());
+		while(!q.empty()){
+			auto curr = q.front();
+			q.pop();
+			for(unsigned int i = 0; i<curr->elems.size();++i){
+				if(i>0 || curr != b.root.get())
+					out <<  ' ';
+				out << curr ->elems[i];
+				if(curr->hasChildAt(i))
+					q.push(curr->getLeftChildAt(i));
+			}
+			if(curr->hasRightChild())
+				q.push(curr->getRightChild());
+		}
+	}
+	return out;
+}
 
 #endif
